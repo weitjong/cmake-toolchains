@@ -94,7 +94,7 @@ if (NOT IN_TRY_COMPILE)
         endif ()
     endif ()
 endif ()
-set (CMAKE_SYSROOT ${EMSCRIPTEN_SYSROOT})
+set (CMAKE_SYSROOT ${EMSCRIPTEN_ROOT_PATH}/cache/sysroot)
 # Only search libraries and headers in sysroot
 set (CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
@@ -154,16 +154,12 @@ set (CMAKE_LINKER       ${EMSCRIPTEN_ROOT_PATH}/emlink.py           CACHE PATH "
 set (EMRUN              ${EMSCRIPTEN_ROOT_PATH}/emrun${TOOL_EXT}    CACHE PATH "emrun")
 set (EMPACKAGER         python ${EMSCRIPTEN_ROOT_PATH}/tools/file_packager.py CACHE PATH "file_packager.py")
 set (EMBUILDER          python ${EMSCRIPTEN_ROOT_PATH}/embuilder.py CACHE PATH "embuilder.py")
+set (CMAKE_CROSSCOMPILING_EMULATOR $ENV{EMSDK_NODE}                 CACHE PATH "node")
 
-# Still perform the compiler checks except for those stated otherwise below
+# Newer CMake is able to identify EMCC as Clang now
 foreach (LANG C CXX)
-    # Since currently CMake does not able to identify Emscripten compiler toolchain, set the compiler identification explicitly
-    set (CMAKE_${LANG}_COMPILER_ID_RUN TRUE)
-    set (CMAKE_${LANG}_COMPILER_ID Clang)
-    set (CMAKE_${LANG}_COMPILER_VERSION ${EMSCRIPTEN_EMCC_VERSION})
-    # The ABI info could not be checked as per normal as CMake does not understand the test build output from Emscripten, so bypass it also
-    set (CMAKE_${LANG}_ABI_COMPILED TRUE)
-    set (CMAKE_${LANG}_SIZEOF_DATA_PTR 4)   # Assume it is always 32-bit for now (we could have used our CheckCompilerToolChains.cmake module here)
+    # Assume it is always 32-bit
+    set (CMAKE_${LANG}_SIZEOF_DATA_PTR 4)
     # We could not set CMAKE_EXECUTABLE_SUFFIX directly because CMake processes platform configuration files after the toolchain file and since we tell CMake that we are cross-compiling for 'Linux' platform (Emscripten is not a valid platform yet in CMake) via CMAKE_SYSTEM_NAME variable, as such CMake force initializes the CMAKE_EXECUTABLE_SUFFIX to empty string (as expected for Linux platform); To workaround it we have to use CMAKE_EXECUTABLE_SUFFIX_C and CMAKE_EXECUTABLE_SUFFIX_CXX instead, which are fortunately not being touched by platform configuration files
     set (CMAKE_EXECUTABLE_SUFFIX_${LANG} .js)
 endforeach ()
